@@ -1,0 +1,9 @@
+[project]
+name = "wipe-war"
+version = "0.1.0"
+description = "An automated analysis tool using Python and OpenCV to quantify cleaning efficiency. By employing Blue Channel Extraction and binary masking on UV-fluorescent "germ" data, this project overcomes camera auto-exposure noise to rank cleaning wipes based on actual microscopic particle removal."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "opencv-python>=4.12.0.88",
+]
