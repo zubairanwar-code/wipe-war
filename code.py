@@ -1,3 +1,17 @@
+"""
+Fluorescent Germ Analysis Tool
+
+Developed for a Science Alliance project by Zahra Anwar (Hidden Hills Elementary).
+Science Alliance: https://srvef.org/science-alliance/
+
+Scientific Methodology & Logic: Zahra Anwar
+- Blue Channel Extraction for fluorescent detection
+- Region of Interest (ROI) cropping strategies
+- Data normalization for scientific comparison
+
+Code Implementation: Zubair Anwar
+"""
+
 import cv2
 import numpy as np
 import os
@@ -77,6 +91,7 @@ def main():
     """
     print("\n" + "="*50)
     print("      FLUORESCENT GERM ANALYSIS TOOL")
+    print("      A Science Alliance Project by Zahra Anwar")
     print("="*50)
 
     # 1. Folder Selection
