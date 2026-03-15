@@ -15,7 +15,6 @@ Built with **Python** and the **OpenCV** computer vision library.
 3.  **Pixel Counting:** The program counts every white pixel (a germ) to give you a precise "Germ Score."
 
 ## 🛠️ Setup
-... (rest of the file) ...
 
 ### Prerequisites
 *   Python 3.12+
@@ -34,7 +33,16 @@ Built with **Python** and the **OpenCV** computer vision library.
 
 ## 📸 Running the Analysis
 
-1.  Place your "Before" and "After" photos in a folder (e.g., `run1/`).
+### 1. File Naming Convention
+To automatically pair "Before" and "After" data, your photos must follow this naming format:
+`run{N}_{wipe}_{before|after}.png`
+
+**Example:**
+*   `run1_clorox_before.png`
+*   `run1_clorox_after.png`
+
+### 2. Execution
+1.  Place your photos in a folder (e.g., `run1/`).
 2.  Run the analysis script:
     ```bash
     python code.py
@@ -43,18 +51,23 @@ Built with **Python** and the **OpenCV** computer vision library.
     ```bash
     uv run code.py
     ```
-3.  Follow the prompts:
-    *   **Folder path:** Enter the path to your photos.
-    *   **Crop:** Choose 'y' to ignore the edges of the table and focus on the center.
-    *   **Percentage:** Choose 'y' to see scores as coverage percentages (useful for comparisons).
-    *   **Threshold:** Use the default `150` or adjust if your photos are very bright or very dim.
-    *   **Save Proof:** Choose 'y' to generate an `analysis_results` folder containing the black-and-white "maps" for your project board.
+3.  Follow the prompts for cropping and thresholding.
+
+### 3. Understanding the Output
+The program will generate a scientific table pairing your results:
+
+```text
+Run  | Wipe            | before_germ_count | before_total_pixels | before_percent_lit | after_germ_count | after_total_pixels | after_percent_lit
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+1    | clorox          | 275587            | 5068800             | 5.44%              | 523708           | 4687500            | 11.17%           
+1    | great_value     | 725272            | 4753152             | 15.26%             | 246595           | 4583904            | 5.38%            
+```
 
 ## 📊 Calculating Your Results
 
-After the program gives you the **Before Score** and **After Score**, use this formula to find your final answer:
+After the program gives you the **before_percent_lit** and **after_percent_lit**, use this formula to find your final answer:
 
-**Percent Removed = ((Before Score - After Score) / Before Score) × 100**
+**Percent Removed = ((before_percent_lit - after_percent_lit) / before_percent_lit) × 100**
 
 ---
 *Developed for science enthusiasts and future researchers.*

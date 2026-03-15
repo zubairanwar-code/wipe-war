@@ -15,6 +15,7 @@ Code Implementation: Zubair Anwar
 import cv2
 import numpy as np
 import os
+import re
 
 def get_final_science_data(image_path, crop=True, threshold=150, save_dir=None):
     """
@@ -105,8 +106,6 @@ def main():
     crop_choice = input("Crop to center to avoid edge noise? (y/n): ").strip().lower()
     use_crop = crop_choice == 'y'
 
-    use_pct = input("Show results as a percentage of the total area? (y/n): ").strip().lower() == 'y'
-
     threshold_input = input("Enter brightness threshold (0-255, default 150): ").strip()
     try:
         threshold = int(threshold_input) if threshold_input else 150
@@ -122,36 +121,62 @@ def main():
         os.makedirs(save_dir, exist_ok=True)
         print(f"\n[Info] Saving validation images to: {save_dir}")
 
-    print(f"\nAnalyzing images with Blue Channel Extraction (Threshold: {threshold})...")
-    print("-" * 65)
-    print(f"{'Filename':<30} | {'Germ Score':<10} | {'% Coverage' if use_pct else 'Total Area'}")
-    print("-" * 65)
-
-    # 4. Process Files
-    found_images = False
-    for filename in sorted(os.listdir(photo_dir)):
+    # 4. Group Files into (Run, Wipe) Pairs
+    # Pattern: run{N}_{wipe}_{before|after}.{ext}
+    data_pairs = {}
+    for filename in os.listdir(photo_dir):
         if filename.lower().endswith((".jpg", ".png", ".jpeg")):
-            image_path = os.path.join(photo_dir, filename)
-            
-            germ_score, total_px = get_final_science_data(
-                image_path, crop=use_crop, threshold=threshold, save_dir=save_dir
-            )
-            
-            if use_pct and total_px > 0:
-                percent_lit = (germ_score / total_px) * 100
-                print(f"{filename:<30} | {germ_score:<10} | {percent_lit:.4f}%")
-            else:
-                print(f"{filename:<30} | {germ_score:<10} | {total_px}")
-            
-            found_images = True
+            # Regex to find run, wipe name, and condition (before/after)
+            # We use (.+) for the wipe name to allow underscores like 'great_value'
+            match = re.search(r"run(\d+)_(.+)_(before|after)", filename.lower())
+            if match:
+                run_num, wipe_name, condition = match.groups()
+                key = (int(run_num), wipe_name)
+                if key not in data_pairs:
+                    data_pairs[key] = {}
+                data_pairs[key][condition] = filename
 
-    if not found_images:
-        print("No images found! Please check the folder path.")
-    else:
-        print("-" * 65)
-        print("\nAnalysis complete!")
-        print("Use these scores to calculate 'Percent Removed' using this formula:")
-        print("((Before_Score - After_Score) / Before_Score) * 100")
+    if not data_pairs:
+        print("\nNo matching image pairs found! Please ensure your files follow the format:")
+        print("run1_wipe_before.png, run1_wipe_after.png, etc.")
+        return
+
+    print(f"\nAnalyzing image pairs with Blue Channel Extraction (Threshold: {threshold})...")
+    header = f"{'Run':<4} | {'Wipe':<15} | {'before_germ_count':<17} | {'before_total_pixels':<19} | {'before_percent_lit':<18} | {'after_germ_count':<16} | {'after_total_pixels':<18} | {'after_percent_lit'}"
+    separator = "-" * len(header)
+    print(separator)
+    print(header)
+    print(separator)
+
+    # 5. Process and Display Results
+    for (run, wipe), conditions in sorted(data_pairs.items()):
+        # Process 'Before'
+        b_score = b_total = b_pct = "N/A"
+        if 'before' in conditions:
+            score, total = get_final_science_data(
+                os.path.join(photo_dir, conditions['before']), 
+                crop=use_crop, threshold=threshold, save_dir=save_dir
+            )
+            b_score, b_total = score, total
+            b_pct = f"{(score/total*100):.2f}%" if total > 0 else "0.00%"
+
+        # Process 'After'
+        a_score = a_total = a_pct = "N/A"
+        if 'after' in conditions:
+            score, total = get_final_science_data(
+                os.path.join(photo_dir, conditions['after']), 
+                crop=use_crop, threshold=threshold, save_dir=save_dir
+            )
+            a_score, a_total = score, total
+            a_pct = f"{(score/total*100):.2f}%" if total > 0 else "0.00%"
+
+        # Print combined row
+        print(f"{run:<4} | {wipe:<15} | {str(b_score):<17} | {str(b_total):<19} | {b_pct:<18} | {str(a_score):<16} | {str(a_total):<18} | {a_pct}")
+
+    print(separator)
+    print("\nAnalysis complete!")
+    print("Use the Before % and After % to calculate 'Percent Removed':")
+    print("((Before_% - After_%) / Before_%) * 100")
 
 
 if __name__ == "__main__":
